@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nikita Buria – Unity Game Developer</title>
+<meta name="description" content="Portfolio of Nikita Buria, Unity game developer (C#).">
+<style>
+  :root {
+    --bg: #12141a; --card: #1b1e27; --text: #e8e8ee; --muted: #9aa0b0;
+    --accent: #f2b155; --accent2: #4fc3b0; --border: #2a2e3b;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  a { color: var(--accent); }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 16px; }
+  header { padding: 64px 0 40px; }
+  h1 { font-size: 2.6rem; margin: 0; }
+  .role { color: var(--accent2); font-size: 1.2rem; margin: 4px 0 20px; }
+  .links { display: flex; flex-wrap: wrap; gap: 10px; }
+  .btn { display: inline-block; padding: 8px 16px; border-radius: 8px; text-decoration: none;
+    border: 1px solid var(--border); background: var(--card); color: var(--text); font-weight: 600; }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary { background: var(--accent); color: #1a1205; border-color: var(--accent); }
+  section { padding: 32px 0; }
+  h2 { font-size: 1.5rem; border-bottom: 2px solid var(--border); padding-bottom: 6px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .video { position: relative; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden;
+    background: #0b0c10; display: grid; place-items: center; color: var(--muted); margin-bottom: 16px; }
+  .video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 12px; }
+  .tag { font-size: .8rem; padding: 2px 10px; border-radius: 999px; background: #262a36; color: var(--muted); }
+  ul { padding-left: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .thumb { aspect-ratio: 16 / 9; background: #0b0c10; border-radius: 8px; margin-bottom: 12px;
+    display: grid; place-items: center; color: var(--muted); overflow: hidden; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .arch { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .arch a { display: block; padding: 12px; border-radius: 8px; background: #262a36; text-decoration: none; color: var(--text); }
+  .arch a span { display: block; color: var(--muted); font-size: .85rem; }
+  footer { padding: 40px 0; color: var(--muted); text-align: center; font-size: .9rem; }
+  @media (max-width: 600px) { h1 { font-size: 2rem; } header { padding-top: 40px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Nikita Buria</h1>
+    <p class="role">Unity Game Developer · C# · Computer Science Student</p>
+    <p>I build games in Unity with a focus on clean, decoupled architecture: state machines, events, data-driven design.</p>
+    <div class="links">
+      <a class="btn primary" href="#games">My games</a>
+      <a class="btn" href="https://github.com/NikitaBuria">GitHub</a>
+      <a class="btn" href="https://linkedin.com/in/nikita-buria-5861b0246">LinkedIn</a>
+      <a class="btn" href="cv.pdf">CV (PDF)</a>
+      <a class="btn" href="mailto:nikitaburia@gmail.com">Email</a>
+    </div>
+  </header>
+
+  <section id="games">
+    <h2>Featured: Follow The Cat</h2>
+    <div class="card">
+      <div class="video">
+        <!-- TODO: replace VIDEO_ID with your YouTube video id -->
+        <!-- <iframe src="https://www.youtube.com/embed/VIDEO_ID" title="Follow The Cat gameplay" allowfullscreen></iframe> -->
+        Gameplay video coming soon
+      </div>
+      <p>Top-down 2D action RPG. Wake in a dark cave, follow a guide cat, fight through a dungeon, sell loot and restore an abandoned town, until the King Wisp drops the last piece the town needs.</p>
+      <div class="tags">
+        <span class="tag">Unity 6</span><span class="tag">C#</span><span class="tag">URP 2D</span>
+        <span class="tag">New Input System</span><span class="tag">Team of 2: code by me, art by Astra</span>
+      </div>
+      <ul>
+        <li>State machines for the player, enemies and a boss (super armor, minion summoning with object pooling)</li>
+        <li>Event-driven, decoupled systems: health and damage via interfaces, inventory with drag and drop, equipment, shop, town restoration</li>
+        <li>Versioned JSON save system with validation, safe writes and backup recovery; autosave on every scene door</li>
+        <li>ScriptableObject data for characters, enemies, items, loot tables and tutorial steps</li>
+      </ul>
+      <div class="links">
+        <!-- TODO: itch.io link -->
+        <a class="btn primary" href="#">Play on itch.io</a>
+        <!-- TODO: repo link -->
+        <a class="btn" href="https://github.com/NikitaBuria">Source code</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="architecture">
+    <h2>How it's built</h2>
+    <p>Each script has one job. States decide <em>what</em> and <em>when</em>; components do the <em>how</em>. UI only listens to events.</p>
+    <!-- TODO: point each link at the file in your repo -->
+    <div class="arch">
+      <a href="#">PlayerStateMachine.cs <span>State pattern: Enter / Update / Exit</span></a>
+      <a href="#">Health.cs <span>IDamageable, events, i-frames</span></a>
+      <a href="#">SaveManager.cs <span>ISaveable, validate before load</span></a>
+      <a href="#">EnemySpawner.cs <span>Object pooling and respawn</span></a>
+    </div>
+  </section>
+
+  <section id="other">
+    <h2>Other projects</h2>
+    <div class="grid">
+      <div class="card">
+        <div class="thumb">Screenshot</div>
+        <h3>Unity course games</h3>
+        <p>Raycast interaction, physics-based movement and event-driven components.</p>
+        <a href="https://github.com/NikitaBuria">GitHub →</a>
+      </div>
+      <div class="card">
+        <div class="thumb">Screenshot</div>
+        <h3>Java GUI games</h3>
+        <p>Object-oriented game logic, game loop and state management.</p>
+        <a href="https://github.com/NikitaBuria">GitHub →</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="about">
+    <h2>About</h2>
+    <p>Second-year Computer Science student and Unity developer. Former combat company sergeant major: I lead teams, stay calm under pressure and finish what I start.</p>
+  </section>
+
+  <footer>© 2026 Nikita Buria</footer>
+</div>
+</body>
+</html>
