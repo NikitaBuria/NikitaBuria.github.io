@@ -14,7 +14,7 @@ window.addEventListener('DOMContentLoaded', () => {
     c.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;image-rendering:pixelated;z-index:'+layer;
     document.body.append(c); return c;
   }
-  const sky=canvas(-1), wake=canvas(9998), pen=sky.getContext('2d'), glow=wake.getContext('2d');
+  const sky=canvas(-2), wake=canvas(-1), pen=sky.getContext('2d'), glow=wake.getContext('2d');
   function landscape() {
     const w=sky.width=Math.ceil(innerWidth/2), h=sky.height=Math.ceil(innerHeight/2);
     wake.width=innerWidth; wake.height=innerHeight;
@@ -56,7 +56,23 @@ window.addEventListener('DOMContentLoaded', () => {
     glow.globalAlpha=1;frame=points.length?requestAnimationFrame(trail):0;
   }
   function clearTrail(){points=[];glow.clearRect(0,0,wake.width,wake.height);}
-  addEventListener('pointermove',e=>{if(reduced.matches||!e.isPrimary)return;points.push({x:e.clientX,y:e.clientY,time:performance.now()});if(points.length>90)points.shift();if(!frame)frame=requestAnimationFrame(trail);},{passive:true});
+  const panelSelector = '.card, .arch a, .game-frame, iframe, a, button, video';
+  function overPanel(event) {
+    return event.target instanceof Element && event.target.closest(panelSelector) !== null;
+  }
+  document.addEventListener('pointerover', event => {
+    if (points.length && overPanel(event)) clearTrail();
+  }, { passive: true });
+  addEventListener('pointermove', event => {
+    if (reduced.matches || !event.isPrimary) return;
+    if (overPanel(event)) {
+      if (points.length) clearTrail();
+      return;
+    }
+    points.push({ x: event.clientX, y: event.clientY, time: performance.now() });
+    if (points.length > 90) points.shift();
+    if (!frame) frame = requestAnimationFrame(trail);
+  }, { passive: true });
   document.addEventListener('pointerleave',clearTrail);reduced.addEventListener('change',clearTrail);
   const control=document.createElement('button');control.type='button';control.textContent='♫  Music off';control.setAttribute('aria-pressed','false');
   control.style.cssText='position:fixed;bottom:max(14px,env(safe-area-inset-bottom));right:14px;z-index:9999;background:#13152b;color:#a4fff0;border:1px solid #52717c;border-radius:4px;padding:10px 14px;font:600 13px monospace;cursor:pointer;';document.body.append(control);
