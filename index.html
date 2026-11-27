@@ -5,6 +5,76 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nikita Buria – Unity Game Developer</title>
 <meta name="description" content="Portfolio of Nikita Buria, Unity game developer (C#).">
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  document.body.style.isolation = 'isolate';
+  function canvas(layer) {
+    const c = document.createElement('canvas');
+    c.setAttribute('aria-hidden','true');
+    c.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;image-rendering:pixelated;z-index:'+layer;
+    document.body.append(c); return c;
+  }
+  const sky=canvas(-1), wake=canvas(9998), pen=sky.getContext('2d'), glow=wake.getContext('2d');
+  function landscape() {
+    const w=sky.width=Math.ceil(innerWidth/2), h=sky.height=Math.ceil(innerHeight/2);
+    wake.width=innerWidth; wake.height=innerHeight;
+    let seed=579;
+    const random=()=>((seed=(1664525*seed+1013904223)>>>0)/4294967296);
+    function rect(x,y,a,b,color){pen.fillStyle=color;pen.fillRect(Math.floor(x),Math.floor(y),Math.ceil(a),Math.ceil(b));}
+    const horizon=Math.floor(h*.77), gradient=pen.createLinearGradient(0,0,0,h);
+    [[0,'#090c23'],[.43,'#211739'],[.74,'#673354'],[.8,'#151b39'],[1,'#080d20']].forEach(([s,c])=>gradient.addColorStop(s,c));
+    rect(0,0,w,h,gradient);
+    for(let i=0;i<w*h/450;i++)rect(random()*w,random()*h*.69,1,1,random()>.82?'#cfc8cb':'#696482');
+    const r=Math.min(w*.13,h*.135);
+    for(let y=-Math.floor(r);y<=r;y++){
+      if(y>0 && y%6<1+Math.floor(2*y/r))continue;
+      const span=Math.sqrt(r*r-y*y), t=(y/r+1)/2;
+      rect(w*.76-span,h*.55+y,2*span,1,'hsl('+(27-43*t)+' 88% '+(70-14*t)+'%)');
+    }
+    for(let layer=0;layer<2;layer++){
+      for(let x=-6;x<w;){
+        const width=5+Math.floor(random()*17),top=horizon-(.02+random()*(layer?.105:.17))*h,color=layer?'#10132b':'#30213d';
+        rect(x,top,width,horizon-top,color);
+        if(random()>.68)rect(x+width*.6,top-4,1,5,color);
+        for(let y=top+3;y<horizon-1;y+=4)for(let col=x+2;col<x+width-1;col+=4)if(random()>.83)rect(col,y,1,1,layer?'#9b6574':'#785669');
+        x+=width+Math.floor(random()*3);
+      }
+    }
+    pen.strokeStyle='#343051';pen.lineWidth=.7;pen.beginPath();
+    for(let x=-w*2;x<w*3;x+=Math.max(18,w/12)){pen.moveTo(w*.51+(x-w*.51)*.045,horizon);pen.lineTo(x,h);}
+    for(let d=1;d<h-horizon;d=d*1.65+1){pen.moveTo(0,horizon+d);pen.lineTo(w,horizon+d);}pen.stroke();
+  }
+  landscape();addEventListener('resize',landscape);
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)');let points=[],frame=0;
+  function trail(now){
+    glow.clearRect(0,0,wake.width,wake.height);points=points.filter(p=>now-p.time<340);
+    for(let i=1;i<points.length;i++){
+      const a=points[i-1],b=points[i],life=Math.max(0,1-(now-a.time)/340);
+      for(const [offset,color] of [[4,'#fa56ad'],[0,'#86fff0']]){glow.globalAlpha=life*.87;glow.strokeStyle=color;glow.lineWidth=1+life*2;glow.beginPath();glow.moveTo(a.x,a.y+offset);glow.lineTo(b.x,b.y+offset);glow.stroke();}
+      if(i%3===0){glow.fillStyle='#ffe8ac';glow.fillRect(a.x-3,a.y+8+(1-life)*9,2,2);}
+    }
+    glow.globalAlpha=1;frame=points.length?requestAnimationFrame(trail):0;
+  }
+  function clearTrail(){points=[];glow.clearRect(0,0,wake.width,wake.height);}
+  addEventListener('pointermove',e=>{if(reduced.matches||!e.isPrimary)return;points.push({x:e.clientX,y:e.clientY,time:performance.now()});if(points.length>90)points.shift();if(!frame)frame=requestAnimationFrame(trail);},{passive:true});
+  document.addEventListener('pointerleave',clearTrail);reduced.addEventListener('change',clearTrail);
+  const control=document.createElement('button');control.type='button';control.textContent='♫  Music off';control.setAttribute('aria-pressed','false');
+  control.style.cssText='position:fixed;bottom:max(14px,env(safe-area-inset-bottom));right:14px;z-index:9999;background:#13152b;color:#a4fff0;border:1px solid #52717c;border-radius:4px;padding:10px 14px;font:600 13px monospace;cursor:pointer;';document.body.append(control);
+  let ctx,master,clock,step,next,playing=false,busy=false;
+  function note(midi,start,length,wave,level,slide=false){
+    const osc=ctx.createOscillator(),env=ctx.createGain();osc.type=wave;osc.frequency.setValueAtTime(440*2**((midi-69)/12),start);if(slide)osc.frequency.exponentialRampToValueAtTime(46,start+.09);
+    env.gain.setValueAtTime(.0001,start);env.gain.exponentialRampToValueAtTime(level,start+.009);env.gain.exponentialRampToValueAtTime(.0001,start+length);
+    osc.connect(env).connect(master);osc.start(start);osc.stop(start+length+.01);osc.onended=()=>{osc.disconnect();env.disconnect();};
+  }
+  const roots=[45,41,48,43],lead=[0,null,7,12,null,7,3,null,7,null,10,7,null,3,2,null];
+  function sequence(){const beat=60/108/4;while(next<ctx.currentTime+.13){const bar=Math.floor(step/16)%4,pos=step%16,root=roots[bar];
+    if(pos%4===0)note(48,next,.12,'sine',.42,true);if(pos%4===0||pos===10)note(root+(pos===8?12:0),next,.24,'triangle',.30);if(pos%4===2)note(89,next,.032,'triangle',.065);
+    if(lead[pos]!==null)note(root+12+(lead[pos]===3&&bar!==0?4:lead[pos]),next,beat*1.8,'square',.075);step++;next+=beat;}}
+  function stop(){playing=false;clearInterval(clock);if(master)master.disconnect();control.textContent='♫  Music off';control.setAttribute('aria-pressed','false');}
+  control.addEventListener('click',async()=>{if(busy)return;if(playing){stop();return;}busy=true;try{ctx??=new AudioContext();await ctx.resume();if(document.hidden)return;master=ctx.createGain();master.gain.value=.22;master.connect(ctx.destination);playing=true;next=ctx.currentTime+.03;step=0;sequence();clock=setInterval(sequence,50);control.textContent='♫  Music on';control.setAttribute('aria-pressed','true');}catch{stop();control.textContent='Audio unavailable';}finally{busy=false;}});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){stop();clearTrail();}});
+});
+</script>
 <style>
   :root {
     --bg: #12141a; --card: #1b1e27; --text: #e8e8ee; --muted: #9aa0b0;
