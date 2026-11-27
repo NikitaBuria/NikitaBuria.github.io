@@ -86,9 +86,71 @@ window.addEventListener('DOMContentLoaded', () => {
   function sequence(){const beat=60/108/4;while(next<ctx.currentTime+.13){const bar=Math.floor(step/16)%4,pos=step%16,root=roots[bar];
     if(pos%4===0)note(48,next,.12,'sine',.42,true);if(pos%4===0||pos===10)note(root+(pos===8?12:0),next,.24,'triangle',.30);if(pos%4===2)note(89,next,.032,'triangle',.065);
     if(lead[pos]!==null)note(root+12+(lead[pos]===3&&bar!==0?4:lead[pos]),next,beat*1.8,'square',.075);step++;next+=beat;}}
-  function stop(){playing=false;clearInterval(clock);if(master)master.disconnect();control.textContent='♫  Music off';control.setAttribute('aria-pressed','false');}
-  control.addEventListener('click',async()=>{if(busy)return;if(playing){stop();return;}busy=true;try{ctx??=new AudioContext();await ctx.resume();if(document.hidden)return;master=ctx.createGain();master.gain.value=.22;master.connect(ctx.destination);playing=true;next=ctx.currentTime+.03;step=0;sequence();clock=setInterval(sequence,50);control.textContent='♫  Music on';control.setAttribute('aria-pressed','true');}catch{stop();control.textContent='Audio unavailable';}finally{busy=false;}});
-  document.addEventListener('visibilitychange',()=>{if(document.hidden){stop();clearTrail();}});
+  const video = document.querySelector('.video video');
+  let musicEnabled = false;
+
+  function syncMusic() {
+    const watching = video && !video.paused && !video.ended && !video.error;
+    const audible = musicEnabled && !watching && !document.hidden;
+    if (audible && !playing) {
+      master = ctx.createGain();
+      master.gain.value = .22;
+      master.connect(ctx.destination);
+      next = ctx.currentTime + .03;
+      sequence();
+      clock = setInterval(sequence, 50);
+    } else if (!audible && playing) {
+      clearInterval(clock);
+      master.disconnect();
+    }
+    playing = audible;
+    control.setAttribute('aria-pressed', String(musicEnabled));
+    control.textContent = !musicEnabled ? '♫  Music off' : watching ? '♫  Paused for video' : '♫  Music on';
+  }
+
+  control.addEventListener('click', async () => {
+    if (busy) return;
+    if (musicEnabled) {
+      musicEnabled = false;
+      syncMusic();
+      return;
+    }
+    busy = true;
+    try {
+      ctx ??= new AudioContext();
+      await ctx.resume();
+      if (!document.hidden) {
+        musicEnabled = true;
+        step = 0;
+        syncMusic();
+      }
+    } catch {
+      musicEnabled = false;
+      syncMusic();
+      control.textContent = 'Audio unavailable';
+    } finally {
+      busy = false;
+    }
+  });
+
+  if (video) {
+    for (const event of ['play', 'pause', 'ended', 'error', 'emptied']) {
+      video.addEventListener(event, syncMusic);
+    }
+    new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting && !video.paused && !document.hidden &&
+          !document.fullscreenElement && document.pictureInPictureElement !== video) {
+        video.pause();
+      }
+    }).observe(video);
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      musicEnabled = false;
+      clearTrail();
+    }
+    syncMusic();
+  });
 });
 </script>
 <style>
