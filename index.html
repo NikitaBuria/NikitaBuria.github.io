@@ -40,6 +40,8 @@
   .arch a { display: block; padding: 12px; border-radius: 8px; background: #262a36; text-decoration: none; color: var(--text); }
   .arch a span { display: block; color: var(--muted); font-size: .85rem; }
   .muted-line { color: var(--muted); font-size: .9rem; margin-top: 16px; }
+  .game-frame { max-width: 520px; margin: 0 auto; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: #121213; }
+  .game-frame iframe { display: block; width: 100%; height: 760px; border: 0; }
   footer { padding: 40px 0; color: var(--muted); text-align: center; font-size: .9rem; }
   @media (max-width: 600px) { h1 { font-size: 2rem; } header { padding-top: 40px; } }
 </style>
@@ -110,10 +112,19 @@
         <h3>Wordle in Hebrew &amp; English</h3>
         <p>Wordle in two languages with one switch: a right-to-left Hebrew board and an English one, sharing the same game logic. Original scoring rules (including repeated letters) and physical keyboard support.</p>
         <div class="tags"><span class="tag">TypeScript</span><span class="tag">HTML/CSS</span><span class="tag">Plays in the browser</span></div>
-        <a href="https://nikitaburia.github.io/Wordle-In-Hebrew/">Play →</a> &nbsp; <a href="https://github.com/NikitaBuria/Wordle-In-Hebrew">Source code →</a>
+        <a href="#play-wordle">Play it below →</a> &nbsp; <a href="https://github.com/NikitaBuria/Wordle-In-Hebrew">Source code →</a>
       </div>
     </div>
     <p class="muted-line">Earlier Java team projects (2022): WhatsApp Web automation with Selenium, and a Rush Hour puzzle game in Swing.</p>
+  </section>
+
+  <section id="play-wordle">
+    <h2>Play Wordle here</h2>
+    <p>Guess the five-letter word in six tries. Click the board, then type or use the on-screen keyboard; the button in the corner switches between Hebrew and English.</p>
+    <div class="game-frame">
+      <iframe src="wordle/index.html" title="Wordle in Hebrew and English" loading="lazy"></iframe>
+    </div>
+    <p class="muted-line"><a href="wordle/index.html">Open full screen</a> · <a href="https://github.com/NikitaBuria/Wordle-In-Hebrew">Source code</a></p>
   </section>
 
   <section id="about">
