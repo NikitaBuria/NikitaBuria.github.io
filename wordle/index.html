@@ -10,15 +10,29 @@
 </head>
 <body>
     <header>
+        <button type="button" id="help-button" class="header-button" aria-label="How to play">?</button>
         <h1 id="title">וורד-לי</h1>
-        <button type="button" id="language-switch">English</button>
+        <button type="button" id="language-switch" class="header-button">English</button>
     </header>
 
     <main class="game">
         <!-- The board and the keyboard are built by wordle.js -->
         <div id="board" aria-label="Game board"></div>
         <p id="message" role="status" aria-live="polite"></p>
+        <button type="button" id="new-game" hidden>New game</button>
         <div id="keyboard"></div>
     </main>
+
+    <!-- How to play; the text is filled in by wordle.js for the current language -->
+    <dialog id="help">
+        <h2 id="help-title"></h2>
+        <div id="help-rules"></div>
+        <ul class="examples">
+            <li><span class="sample" data-result="correct"></span><span id="help-correct"></span></li>
+            <li><span class="sample" data-result="present"></span><span id="help-present"></span></li>
+            <li><span class="sample" data-result="absent"></span><span id="help-absent"></span></li>
+        </ul>
+        <button type="button" id="help-close"></button>
+    </dialog>
 </body>
 </html>

@@ -18,11 +18,24 @@ const LANGUAGES = {
             "תלמיד", "תרמיל", "תרשים", "חתולה", "אפרוח",
         ],
         letterPattern: /^[א-ת]$/,
+        newGameLabel: "משחק חדש",
         messages: {
             rowFull: "השורה כבר מלאה",
             tooShort: "צריך חמש אותיות",
             win: "כל הכבוד, אתה קוסם אמיתי! ניחשת נכון את המילה וניצחת!",
-            lose: (secretWord) => `לא הצלחת לנחש הפעם :( המילה הייתה ${secretWord}. רענן את הדף כדי לשחק שוב`,
+            lose: (secretWord) => `לא הצלחת לנחש הפעם :( המילה הייתה ${secretWord}`,
+        },
+        help: {
+            title: "איך משחקים",
+            rules: [
+                "נחשו את המילה הסודית בשישה ניסיונות.",
+                "כל ניחוש הוא מילה של חמש אותיות. לחצו הכנס כדי לבדוק אותו.",
+                "אחרי כל ניחוש צבע המשבצות מראה כמה התקרבתם:",
+            ],
+            correct: "האות במילה ובמקום הנכון",
+            present: "האות במילה אבל במקום אחר",
+            absent: "האות לא נמצאת במילה",
+            close: "הבנתי",
         },
     },
     en: {
@@ -40,11 +53,24 @@ const LANGUAGES = {
             "TOAST", "TRAIN", "WATER", "WHALE", "WORLD", "ZEBRA", "BLOCK", "SWORD", "CROWN", "TOWER",
         ],
         letterPattern: /^[a-zA-Z]$/,
+        newGameLabel: "New game",
         messages: {
             rowFull: "The row is already full",
             tooShort: "Five letters needed",
             win: "Well done, you guessed the word!",
-            lose: (secretWord) => `Out of tries :( The word was ${secretWord}. Switch language or refresh to play again`,
+            lose: (secretWord) => `Out of tries :( The word was ${secretWord}`,
+        },
+        help: {
+            title: "How to play",
+            rules: [
+                "Guess the secret word in six tries.",
+                "Each guess is a five-letter word. Press Enter to check it.",
+                "After each guess, the tiles change color to show how close you were:",
+            ],
+            correct: "The letter is in the word and in the right spot",
+            present: "The letter is in the word but in another spot",
+            absent: "The letter is not in the word",
+            close: "Got it",
         },
     },
 };

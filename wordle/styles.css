@@ -36,10 +36,9 @@ h1 {
     font-size: 32px;
 }
 
-#language-switch {
+.header-button {
     position: absolute;
     top: 50%;
-    inset-inline-end: 12px;
     transform: translateY(-50%);
     padding: 6px 12px;
     border: 1px solid var(--border);
@@ -50,8 +49,21 @@ h1 {
     cursor: pointer;
 }
 
-#language-switch:hover {
+.header-button:hover {
     background: var(--border);
+}
+
+#help-button {
+    inset-inline-start: 12px;
+    width: 34px;
+    padding: 6px 0;
+    border-radius: 50%;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+#language-switch {
+    inset-inline-end: 12px;
 }
 
 /* ---------- Board ---------- */
@@ -97,6 +109,25 @@ h1 {
     font-weight: 600;
 }
 
+#new-game {
+    padding: 10px 28px;
+    border: none;
+    border-radius: 6px;
+    background: var(--correct);
+    color: var(--text);
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+#new-game:hover {
+    filter: brightness(1.15);
+}
+
+#new-game[hidden] {
+    display: none;
+}
+
 /* ---------- Keyboard ---------- */
 
 #keyboard {
@@ -130,6 +161,64 @@ h1 {
     flex: 1.5;
     max-width: 66px;
     font-size: 14px;
+}
+
+/* ---------- How to play ---------- */
+
+#help {
+    max-width: min(420px, 90vw);
+    padding: 20px 24px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--background);
+    color: var(--text);
+}
+
+#help::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+#help h2 {
+    margin: 0 0 12px;
+    text-align: center;
+}
+
+#help p {
+    margin: 0 0 8px;
+    line-height: 1.4;
+}
+
+.examples {
+    margin: 12px 0 20px;
+    padding: 0;
+    list-style: none;
+}
+
+.examples li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.sample {
+    flex: none;
+    width: 32px;
+    height: 32px;
+    border: 2px solid var(--border);
+}
+
+#help-close {
+    display: block;
+    margin: 0 auto;
+    padding: 8px 28px;
+    border: none;
+    border-radius: 6px;
+    background: var(--key);
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
 }
 
 /* ---------- Results (set by wordle.js as data-result) ---------- */

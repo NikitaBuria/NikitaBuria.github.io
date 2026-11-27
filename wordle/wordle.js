@@ -69,6 +69,10 @@ function submitGuess() {
 function endGame(message) {
     game.isOver = true;
     showMessage(message);
+
+    const newGameButton = element("new-game");
+    newGameButton.hidden = false;
+    newGameButton.focus(); // so Enter starts the next game
 }
 
 // ---------------------------------------------------------------- Scoring
@@ -196,11 +200,29 @@ function startNewGame() {
     game.guess = "";
     game.isOver = false;
 
-    document.querySelectorAll(".cell").forEach((cell) => {
-        cell.textContent = "";
-        delete cell.dataset.result;
+    document.querySelectorAll(".cell, .key").forEach((tile) => {
+        if (tile.classList.contains("cell")) {
+            tile.textContent = "";
+        }
+        delete tile.dataset.result;
     });
     showMessage("");
+    element("new-game").hidden = true;
+}
+
+// Fills the "How to play" dialog with the current language's text.
+function fillHelp() {
+    const help = language.help;
+    element("help-title").textContent = help.title;
+    element("help-rules").replaceChildren(...help.rules.map((rule) => {
+        const paragraph = document.createElement("p");
+        paragraph.textContent = rule;
+        return paragraph;
+    }));
+    element("help-correct").textContent = help.correct;
+    element("help-present").textContent = help.present;
+    element("help-absent").textContent = help.absent;
+    element("help-close").textContent = help.close;
 }
 
 function setLanguage(code) {
@@ -209,6 +231,8 @@ function setLanguage(code) {
     document.documentElement.dir = language.direction;
     element("title").textContent = language.title;
     element("language-switch").textContent = language.switchLabel;
+    element("new-game").textContent = language.newGameLabel;
+    fillHelp();
 
     buildKeyboard();
     startNewGame();
@@ -216,6 +240,11 @@ function setLanguage(code) {
 
 // Physical keyboard: Enter, Backspace and letters of the current language.
 function onKeyDown(event) {
+    const helpDialog = element("help");
+    if (helpDialog.open || game.isOver) {
+        return; // the dialog or the New game button handles the keys
+    }
+
     if (event.key === "Enter") {
         event.preventDefault(); // otherwise Enter also "clicks" the last on-screen key pressed
         submitGuess();
@@ -235,5 +264,13 @@ document.addEventListener("DOMContentLoaded", () => {
         setLanguage(language === LANGUAGES.he ? "en" : "he");
         switchButton.blur(); // so Enter submits a guess instead of switching again
     });
+
+    element("new-game").addEventListener("click", startNewGame);
+
+    const helpDialog = element("help");
+    element("help-button").addEventListener("click", () => helpDialog.showModal());
+    element("help-close").addEventListener("click", () => helpDialog.close());
+    helpDialog.addEventListener("close", () => element("help-button").blur());
+
     document.addEventListener("keydown", onKeyDown);
 });
