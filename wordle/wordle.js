@@ -1,90 +1,25 @@
-// Compiled from wordle.ts (same logic, type annotations removed).
+// Compiled from wordle.ts (same code, type annotations removed).
 // Wordle in Hebrew and English: guess the 5-letter word in 6 tries.
-// Board cells have ids "row-column" (e.g. "1-1" is the first letter of the first row),
-// and every on-screen letter key has its letter as its id.
+// The language settings (words, keyboard, messages) are in languages.ts.
 
 const WORD_LENGTH = 5;
-const MAX_ROWS = 6;
+const MAX_GUESSES = 6;
 
+// Higher rank wins when a key has been in several guesses: green beats yellow beats gray.
+const RESULT_RANK = { absent: 0, present: 1, correct: 2 };
 
-
-// Everything that changes between languages lives here; the game logic below is shared.
-const LANGUAGES = {
-    he: {
-        title: "וורד-לי",
-        direction: "rtl",
-        switchLabel: "English",
-        keyboardRows: ["קראטוןםפ", "שדגכעיחלךף", "זסבהנמצתץ"],
-        enterLabel: "הכנס",
-        words: [
-            "רשימה", "סיפור", "אגודל", "וורדל", "מניפה", "מריצה", "רכישה", "ענבים", "חביות", "מכונה",
-            "נקישה", "דפדפן", "בקבוק", "עיתון", "שניצל", "ספורט", "גיטרה", "גאנדי", "מונית", "תופסן",
-            "ציפית", "שטרות", "מכולת", "מנורה", "יהודי", "ברירה", "ערכים", "בחינה", "שרביט", "שולחן",
-            "רובוט", "מכלול", "פרחים", "בורגר", "מוותר", "צדדים", "מילון", "מטריה", "פגיעה", "זינוק",
-            "זרנוק", "סגנון", "ציפור", "נקיון", "אתמול", "אתרוג", "מספיק", "מפליק", "מצדיק", "מפליל",
-            "תלמיד", "תרמיל", "תרשים", "חתולה", "אפרוח",
-        ],
-        letterPattern: /^[א-ת]$/,
-        messages: {
-            rowFull: "השורה כבר מלאה",
-            tooShort: "צריך חמש אותיות",
-            win: "כל הכבוד, אתה קוסם אמיתי! ניחשת נכון את המילה וניצחת!",
-            lose: (word) => `לא הצלחת לנחש הפעם :( המילה הייתה ${word}. רענן את הדף כדי לשחק שוב`,
-        },
-    },
-    en: {
-        title: "Wordle",
-        direction: "ltr",
-        switchLabel: "עברית",
-        keyboardRows: ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"],
-        enterLabel: "ENTER",
-        words: [
-            "APPLE", "BEACH", "BRAIN", "BREAD", "BRICK", "CHAIR", "CHESS", "CLOUD", "CRANE", "DANCE",
-            "DREAM", "EAGLE", "EARTH", "FLAME", "FROST", "FRUIT", "GHOST", "GLASS", "GRAPE", "HEART",
-            "HORSE", "HOUSE", "JUICE", "KNIFE", "LEMON", "LIGHT", "MAGIC", "MONEY", "MOUSE", "MUSIC",
-            "NIGHT", "OCEAN", "PAINT", "PIANO", "PILOT", "PIZZA", "PLANT", "QUEEN", "RIVER", "ROBOT",
-            "SHEEP", "SHIRT", "SNAKE", "SPACE", "SPOON", "STONE", "STORM", "SUGAR", "TABLE", "TIGER",
-            "TOAST", "TRAIN", "WATER", "WHALE", "WORLD", "ZEBRA", "BLOCK", "SWORD", "CROWN", "TOWER",
-        ],
-        letterPattern: /^[a-zA-Z]$/,
-        messages: {
-            rowFull: "The row is already full",
-            tooShort: "Five letters needed",
-            win: "Well done, you guessed the word!",
-            lose: (word) => `Out of tries :( The word was ${word}. Switch language or refresh to play again`,
-        },
-    },
-};
-
-const COLORS = {
-    correct: "#538d4e", // right letter, right place
-    present: "#b59f3b", // right letter, wrong place
-    absent: "#3a3a3c",  // letter not in the word
-};
+// ---------------------------------------------------------------- State
 
 let language = LANGUAGES.he;
 
 const game = {
     secretWord: "",
-    row: 1,
+    row: 0,       // index of the row being typed
     guess: "",
     isOver: false,
 };
 
-function pickRandomWord() {
-    return language.words[Math.floor(Math.random() * language.words.length)];
-}
-
-function getCell(row, column) {
-    return document.getElementById(`${row}-${column}`);
-}
-
-function showMessage(text) {
-    const message = document.getElementById("message");
-    if (message) {
-        message.textContent = text;
-    }
-}
+// ---------------------------------------------------------------- Input
 
 function addLetter(letter) {
     if (game.isOver) {
@@ -95,12 +30,9 @@ function addLetter(letter) {
         return;
     }
 
-    const normalized = letter.trim().toUpperCase();
+    const normalized = letter.toUpperCase();
+    getCell(game.row, game.guess.length).textContent = normalized;
     game.guess += normalized;
-    const cell = getCell(game.row, game.guess.length);
-    if (cell) {
-        cell.textContent = normalized;
-    }
     showMessage("");
 }
 
@@ -109,11 +41,8 @@ function deleteLetter() {
         return;
     }
 
-    const cell = getCell(game.row, game.guess.length);
-    if (cell) {
-        cell.textContent = "";
-    }
     game.guess = game.guess.slice(0, -1);
+    getCell(game.row, game.guess.length).textContent = "";
 }
 
 function submitGuess() {
@@ -125,34 +54,37 @@ function submitGuess() {
         return;
     }
 
-    paintRow(scoreGuess(game.guess, game.secretWord));
+    showResults(scoreGuess(game.guess, game.secretWord));
 
     if (game.guess === game.secretWord) {
-        game.isOver = true;
-        showMessage(language.messages.win);
-        return;
+        endGame(language.messages.win);
+    } else if (game.row === MAX_GUESSES - 1) {
+        endGame(language.messages.lose(game.secretWord));
+    } else {
+        game.row++;
+        game.guess = "";
     }
-    if (game.row === MAX_ROWS) {
-        game.isOver = true;
-        showMessage(language.messages.lose(game.secretWord));
-        return;
-    }
-
-    game.row++;
-    game.guess = "";
 }
 
-// Scores a guess like the original Wordle: exact matches first, then
-// "present" letters, each secret letter used at most once (handles repeated letters).
+function endGame(message) {
+    game.isOver = true;
+    showMessage(message);
+}
+
+// ---------------------------------------------------------------- Scoring
+
+// Scores a guess like the original Wordle: exact matches first, then letters that are
+// in the word but elsewhere. Each secret letter is used at most once, so repeated
+// letters are handled correctly (guessing "LLAMA" for "HELLO" marks only two L's).
 function scoreGuess(guess, secret) {
     const results = new Array(WORD_LENGTH).fill("absent");
-    const unmatched = [];
+    const unmatchedLetters = [];
 
     for (let i = 0; i < WORD_LENGTH; i++) {
         if (guess[i] === secret[i]) {
             results[i] = "correct";
         } else {
-            unmatched.push(secret[i]);
+            unmatchedLetters.push(secret[i]);
         }
     }
 
@@ -160,55 +92,79 @@ function scoreGuess(guess, secret) {
         if (results[i] === "correct") {
             continue;
         }
-        const index = unmatched.indexOf(guess[i]);
+        const index = unmatchedLetters.indexOf(guess[i]);
         if (index !== -1) {
             results[i] = "present";
-            unmatched.splice(index, 1);
+            unmatchedLetters.splice(index, 1);
         }
     }
     return results;
 }
 
-function paintRow(results) {
-    for (let i = 0; i < WORD_LENGTH; i++) {
-        const cell = getCell(game.row, i + 1);
-        if (cell) {
-            cell.style.background = COLORS[results[i]];
-        }
-        paintKey(game.guess[i], results[i]);
+// ---------------------------------------------------------------- Drawing
+
+function element(id) {
+    const found = document.getElementById(id);
+    if (!found) {
+        throw new Error(`Missing element #${id}`);
     }
+    return found;
 }
 
-// A key keeps its best result: green beats yellow, yellow beats gray.
-function paintKey(letter, result) {
-    const key = document.getElementById(letter);
+function getCell(row, column) {
+    return element("board").children[row].children[column];
+}
+
+function showMessage(text) {
+    element("message").textContent = text;
+}
+
+// The colors themselves are in styles.css ([data-result="..."]).
+function showResults(results) {
+    results.forEach((result, i) => {
+        getCell(game.row, i).dataset.result = result;
+        updateKey(game.guess[i], result);
+    });
+}
+
+function updateKey(letter, result) {
+    const key = document.querySelector(`.key[data-letter="${letter}"]`);
     if (!key) {
         return;
     }
     const current = key.dataset.result;
-    if (current === "correct" || (current === "present" && result === "absent")) {
-        return;
+    if (!current || RESULT_RANK[result] > RESULT_RANK[current]) {
+        key.dataset.result = result;
     }
-    key.dataset.result = result;
-    key.style.background = COLORS[result];
 }
 
-// ---- Setup: building the page for the current language ----
+// ---------------------------------------------------------------- Setup
 
-function createKey(label, className, onClick) {
+function buildBoard() {
+    const board = element("board");
+    for (let row = 0; row < MAX_GUESSES; row++) {
+        const rowElement = document.createElement("div");
+        rowElement.className = "row";
+        for (let column = 0; column < WORD_LENGTH; column++) {
+            const cell = document.createElement("div");
+            cell.className = "cell";
+            rowElement.append(cell);
+        }
+        board.append(rowElement);
+    }
+}
+
+function createKey(label, onClick, extraClass = "") {
     const key = document.createElement("button");
     key.type = "button";
-    key.className = className;
+    key.className = `key ${extraClass}`.trim();
     key.textContent = label;
     key.addEventListener("click", onClick);
     return key;
 }
 
 function buildKeyboard() {
-    const keyboard = document.getElementById("keyboard");
-    if (!keyboard) {
-        return;
-    }
+    const keyboard = element("keyboard");
     keyboard.replaceChildren();
 
     language.keyboardRows.forEach((letters, index) => {
@@ -217,20 +173,16 @@ function buildKeyboard() {
         const isLastRow = index === language.keyboardRows.length - 1;
 
         if (isLastRow) {
-            row.append(createKey(language.enterLabel, "key wide", submitGuess));
+            row.append(createKey(language.enterLabel, submitGuess, "wide"));
         }
         for (const letter of letters) {
-            const key = createKey(letter, "key", () => addLetter(letter));
-            key.id = letter;
+            const key = createKey(letter, () => addLetter(letter));
+            key.dataset.letter = letter;
             row.append(key);
         }
         if (isLastRow) {
-            const deleteKey = createKey("", "key wide", deleteLetter);
+            const deleteKey = createKey("⌫", deleteLetter, "wide");
             deleteKey.setAttribute("aria-label", "Delete");
-            const icon = document.createElement("img");
-            icon.src = "delete-icon.png";
-            icon.alt = "";
-            deleteKey.append(icon);
             row.append(deleteKey);
         }
         keyboard.append(row);
@@ -238,14 +190,15 @@ function buildKeyboard() {
 }
 
 function startNewGame() {
-    game.secretWord = pickRandomWord();
-    game.row = 1;
+    const words = language.secretWords;
+    game.secretWord = words[Math.floor(Math.random() * words.length)];
+    game.row = 0;
     game.guess = "";
     game.isOver = false;
 
     document.querySelectorAll(".cell").forEach((cell) => {
         cell.textContent = "";
-        cell.style.background = "";
+        delete cell.dataset.result;
     });
     showMessage("");
 }
@@ -254,37 +207,33 @@ function setLanguage(code) {
     language = LANGUAGES[code];
     document.documentElement.lang = code;
     document.documentElement.dir = language.direction;
-
-    const title = document.getElementById("title");
-    if (title) {
-        title.textContent = language.title;
-    }
-    const switchButton = document.getElementById("language-switch");
-    if (switchButton) {
-        switchButton.textContent = language.switchLabel;
-    }
+    element("title").textContent = language.title;
+    element("language-switch").textContent = language.switchLabel;
 
     buildKeyboard();
     startNewGame();
 }
 
-// Physical keyboard support (Hebrew or English layout, matching the current language).
-document.addEventListener("keydown", (event) => {
+// Physical keyboard: Enter, Backspace and letters of the current language.
+function onKeyDown(event) {
     if (event.key === "Enter") {
-        event.preventDefault(); // otherwise Enter also "clicks" the last on-screen key that was pressed
+        event.preventDefault(); // otherwise Enter also "clicks" the last on-screen key pressed
         submitGuess();
     } else if (event.key === "Backspace") {
         deleteLetter();
     } else if (language.letterPattern.test(event.key)) {
         addLetter(event.key);
     }
-});
+}
 
 document.addEventListener("DOMContentLoaded", () => {
-    const switchButton = document.getElementById("language-switch");
-    switchButton?.addEventListener("click", () => {
+    buildBoard();
+    setLanguage("he");
+
+    const switchButton = element("language-switch");
+    switchButton.addEventListener("click", () => {
         setLanguage(language === LANGUAGES.he ? "en" : "he");
         switchButton.blur(); // so Enter submits a guess instead of switching again
     });
-    setLanguage("he");
+    document.addEventListener("keydown", onKeyDown);
 });
