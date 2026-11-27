@@ -39,6 +39,7 @@
   .arch { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
   .arch a { display: block; padding: 12px; border-radius: 8px; background: #262a36; text-decoration: none; color: var(--text); }
   .arch a span { display: block; color: var(--muted); font-size: .85rem; }
+  .muted-line { color: var(--muted); font-size: .9rem; margin-top: 16px; }
   footer { padding: 40px 0; color: var(--muted); text-align: center; font-size: .9rem; }
   @media (max-width: 600px) { h1 { font-size: 2rem; } header { padding-top: 40px; } }
 </style>
@@ -48,7 +49,7 @@
 
   <header>
     <h1>Nikita Buria</h1>
-    <p class="role">Unity Game Developer · C# · Computer Science Student</p>
+    <p class="role">Unity Game Developer · C#</p>
     <p>I build games in Unity with a focus on clean, decoupled architecture: state machines, events, data-driven design.</p>
     <div class="links">
       <a class="btn primary" href="#games">My games</a>
@@ -98,23 +99,26 @@
     <h2>Other projects</h2>
     <div class="grid">
       <div class="card">
-        <div class="thumb">Screenshot</div>
-        <h3>Unity course games</h3>
-        <p>Raycast interaction, physics-based movement and event-driven components.</p>
-        <a href="https://github.com/NikitaBuria">GitHub →</a>
+        <div class="thumb"><img src="images/mario-from-hell.png" alt="Mario From Hell: a 2D platformer level with rock platforms"></div>
+        <h3>Mario From Hell</h3>
+        <p>A 2D side-scrolling platformer written from scratch in Java Swing, with no engine: fixed-timestep game loop, tile map loaded from a text file, scrolling camera, gravity, jumping and tile collision.</p>
+        <div class="tags"><span class="tag">Java</span><span class="tag">Swing</span><span class="tag">Game loop</span><span class="tag">Collision</span></div>
+        <a href="https://github.com/NikitaBuria/MarioFromHell">Source code →</a>
       </div>
       <div class="card">
-        <div class="thumb">Screenshot</div>
-        <h3>Java GUI games</h3>
-        <p>Object-oriented game logic, game loop and state management.</p>
-        <a href="https://github.com/NikitaBuria">GitHub →</a>
+        <div class="thumb"><img src="images/wordle-in-hebrew.png" alt="Wordle in Hebrew: the game board with a winning guess"></div>
+        <h3>Wordle in Hebrew</h3>
+        <p>Wordle with a right-to-left Hebrew board and keyboard, the original scoring rules (including repeated letters) and physical keyboard support.</p>
+        <div class="tags"><span class="tag">TypeScript</span><span class="tag">HTML/CSS</span><span class="tag">Plays in the browser</span></div>
+        <a href="https://nikitaburia.github.io/Wordle-In-Hebrew/">Play →</a> &nbsp; <a href="https://github.com/NikitaBuria/Wordle-In-Hebrew">Source code →</a>
       </div>
     </div>
+    <p class="muted-line">Earlier Java team projects (2022): WhatsApp Web automation with Selenium, and a Rush Hour puzzle game in Swing.</p>
   </section>
 
   <section id="about">
     <h2>About</h2>
-    <p>Second-year Computer Science student and Unity developer. Former combat company sergeant major: I lead teams, stay calm under pressure and finish what I start.</p>
+    <p>Unity developer with Computer Science studies (B.Sc., on hold). I build with AI coding agents like Claude Code every day and review everything they produce. Former combat company sergeant major: I lead teams, stay calm under pressure and finish what I start.</p>
   </section>
 
   <footer>© 2026 Nikita Buria</footer>
