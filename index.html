@@ -15,21 +15,29 @@ window.addEventListener('DOMContentLoaded', () => {
     document.body.append(c); return c;
   }
   const sky=canvas(-2), wake=canvas(-1), pen=sky.getContext('2d'), glow=wake.getContext('2d');
-  function landscape() {
-    const w=sky.width=Math.ceil(innerWidth/2), h=sky.height=Math.ceil(innerHeight/2);
-    wake.width=innerWidth; wake.height=innerHeight;
-    let seed=579;
-    const random=()=>((seed=(1664525*seed+1013904223)>>>0)/4294967296);
-    function rect(x,y,a,b,color){pen.fillStyle=color;pen.fillRect(Math.floor(x),Math.floor(y),Math.ceil(a),Math.ceil(b));}
-    const horizon=Math.floor(h*.77), gradient=pen.createLinearGradient(0,0,0,h);
-    [[0,'#090c23'],[.43,'#211739'],[.74,'#673354'],[.8,'#151b39'],[1,'#080d20']].forEach(([s,c])=>gradient.addColorStop(s,c));
-    rect(0,0,w,h,gradient);
-    for(let i=0;i<w*h/450;i++)rect(random()*w,random()*h*.69,1,1,random()>.82?'#cfc8cb':'#696482');
-    const r=Math.min(w*.13,h*.135);
-    for(let y=-Math.floor(r);y<=r;y++){
-      if(y>0 && y%6<1+Math.floor(2*y/r))continue;
-      const span=Math.sqrt(r*r-y*y), t=(y/r+1)/2;
-      rect(w*.76-span,h*.55+y,2*span,1,'hsl('+(27-43*t)+' 88% '+(70-14*t)+'%)');
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const city = document.createElement('canvas');
+  const stars = document.createElement('canvas');
+  const cityPen = city.getContext('2d');
+  let skyFrame = 0;
+
+  function resizeSky() {
+    const w = sky.width = city.width = stars.width = Math.ceil(innerWidth / 2);
+    const h = sky.height = city.height = stars.height = Math.ceil(innerHeight / 2);
+    wake.width = innerWidth;
+    wake.height = innerHeight;
+    const horizon = Math.floor(h * .77);
+    let seed = 579;
+    const random = () => ((seed = (1664525 * seed + 1013904223) >>> 0) / 4294967296);
+    const starPen = stars.getContext('2d');
+    for (let i = 0; i < w * h / 450; i++) {
+      const x = Math.floor(random() * w), y = Math.floor(random() * h * .69);
+      starPen.fillStyle = random() > .82 ? '#eee7d5' : '#9897bd';
+      starPen.fillRect(x, y, 1, 1);
+    }
+    function rect(x, y, width, height, color) {
+      cityPen.fillStyle = color;
+      cityPen.fillRect(Math.floor(x), Math.floor(y), Math.ceil(width), Math.ceil(height));
     }
     for(let layer=0;layer<2;layer++){
       for(let x=-6;x<w;){
@@ -40,12 +48,67 @@ window.addEventListener('DOMContentLoaded', () => {
         x+=width+Math.floor(random()*3);
       }
     }
-    pen.strokeStyle='#343051';pen.lineWidth=.7;pen.beginPath();
-    for(let x=-w*2;x<w*3;x+=Math.max(18,w/12)){pen.moveTo(w*.51+(x-w*.51)*.045,horizon);pen.lineTo(x,h);}
-    for(let d=1;d<h-horizon;d=d*1.65+1){pen.moveTo(0,horizon+d);pen.lineTo(w,horizon+d);}pen.stroke();
+    cityPen.strokeStyle='#343051';cityPen.lineWidth=.7;cityPen.beginPath();
+    for(let x=-w*2;x<w*3;x+=Math.max(18,w/12)){cityPen.moveTo(w*.51+(x-w*.51)*.045,horizon);cityPen.lineTo(x,h);}
+    for(let d=1;d<h-horizon;d=d*1.65+1){cityPen.moveTo(0,horizon+d);cityPen.lineTo(w,horizon+d);}cityPen.stroke();
+    drawSky();
   }
-  landscape();addEventListener('resize',landscape);
-  const reduced=matchMedia('(prefers-reduced-motion: reduce)');let points=[],frame=0;
+
+  function drawSky() {
+    skyFrame = 0;
+    const w = sky.width, h = sky.height;
+    const distance = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    const progress = Math.max(0, Math.min(1, scrollY / distance));
+    const night = progress * progress * (3 - 2 * progress);
+    const gradient = pen.createLinearGradient(0, 0, 0, h);
+    for (const [stop, day, dark] of [
+      [0, [15, 23, 50], [4, 7, 24]], [.43, [53, 42, 78], [14, 22, 54]],
+      [.74, [147, 71, 90], [39, 48, 79]], [.8, [26, 29, 57], [12, 19, 39]],
+      [1, [8, 13, 32], [5, 10, 24]]
+    ]) {
+      const rgb = day.map((v, i) => Math.round(v + (dark[i] - v) * night));
+      gradient.addColorStop(stop, 'rgb(' + rgb.join(',') + ')');
+    }
+    pen.fillStyle = gradient;
+    pen.fillRect(0, 0, w, h);
+    pen.globalAlpha = .16 + .84 * night;
+    pen.drawImage(stars, 0, 0);
+    pen.globalAlpha = 1;
+    const radius = Math.min(w * .105, h * .12);
+    const horizon = Math.floor(h * .77);
+    const sunX = w * .88, moonX = w * .88;
+    const sunY = h * .28 + night * h * .95;
+    const moonY = h * 1.2 - night * h * .94;
+    pen.save();
+    pen.beginPath(); pen.rect(0, 0, w, horizon); pen.clip();
+    function disk(x, cy, r, color, striped) {
+      for (let y = -Math.floor(r); y <= r; y++) {
+        if (striped && y > 0 && y % 6 < 1 + Math.floor(2 * y / r)) continue;
+        const span = Math.sqrt(r * r - y * y);
+        pen.fillStyle = striped ? 'hsl(' + (27 - 43 * (y / r + 1) / 2) + ' 88% ' + (70 - 7 * (y / r + 1)) + '%)' : color;
+        pen.fillRect(Math.floor(x - span), Math.floor(cy + y), Math.ceil(2 * span), 1);
+      }
+    }
+    if (reduced.matches) pen.globalAlpha = 1 - night;
+    disk(sunX, reduced.matches ? h * .28 : sunY, radius, '', true);
+    pen.globalAlpha = reduced.matches ? night : 1;
+    const cy = reduced.matches ? h * .28 : moonY, r = radius * .74;
+    disk(moonX, cy, r, '#d5e3f4', false);
+    for (const [x, y, size] of [[-.39,-.22,.21],[.22,.37,.15],[.37,-.31,.095],[-.34,.42,.08]]) {
+      disk(moonX + r * x, cy + r * y, r * size, '#a8bed8', false);
+    }
+    pen.restore();
+    pen.drawImage(city, 0, 0);
+  }
+  function scheduleSky() {
+    if (!skyFrame) skyFrame = requestAnimationFrame(drawSky);
+  }
+  resizeSky();
+  addEventListener('resize', resizeSky);
+  addEventListener('scroll', scheduleSky, { passive: true });
+  addEventListener('pageshow', scheduleSky);
+  reduced.addEventListener('change', scheduleSky);
+  let points=[],frame=0;
   function trail(now){
     glow.clearRect(0,0,wake.width,wake.height);points=points.filter(p=>now-p.time<340);
     for(let i=1;i<points.length;i++){
