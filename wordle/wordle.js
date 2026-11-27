@@ -28,7 +28,6 @@ const LANGUAGES = {
         messages: {
             rowFull: "השורה כבר מלאה",
             tooShort: "צריך חמש אותיות",
-            notAWord: "המילה הזו לא קיימת במאגר",
             win: "כל הכבוד, אתה קוסם אמיתי! ניחשת נכון את המילה וניצחת!",
             lose: (word) => `לא הצלחת לנחש הפעם :( המילה הייתה ${word}. רענן את הדף כדי לשחק שוב`,
         },
@@ -51,7 +50,6 @@ const LANGUAGES = {
         messages: {
             rowFull: "The row is already full",
             tooShort: "Five letters needed",
-            notAWord: "That word isn't in the list",
             win: "Well done, you guessed the word!",
             lose: (word) => `Out of tries :( The word was ${word}. Switch language or refresh to play again`,
         },
@@ -124,10 +122,6 @@ function submitGuess() {
     }
     if (game.guess.length < WORD_LENGTH) {
         showMessage(language.messages.tooShort);
-        return;
-    }
-    if (!language.words.includes(game.guess)) {
-        showMessage(language.messages.notAWord);
         return;
     }
 
